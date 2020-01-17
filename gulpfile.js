@@ -1,8 +1,6 @@
 let gulp = require('gulp');
 let browserify = require('browserify');
 let source = require('vinyl-source-stream');
-let watchify = require('watchify');
-let tsify = require('tsify');
 let fancy_log = require('fancy-log');
 let del = require('del');
 
@@ -17,13 +15,18 @@ const paths = {
     }
 };
 
-let watchedBrowserify = watchify(browserify({
-    basedir: '.',
+let brwsrify = browserify({
     debug: true,
     entries: paths.js.src,
     cache: {},
-    packageCache: {}
-}).plugin(tsify));
+    packageCache: {},
+    plugin: ['watchify'],
+    transform: ['tscriptify'],
+    extensions: ['.ts']
+});
+
+brwsrify.on('update', bundle);
+brwsrify.on('log', fancy_log);
 
 function clean() {
     return del([paths.html.dest + '*']);
@@ -39,7 +42,7 @@ function watch() {
 }
 
 function bundle() {
-    return watchedBrowserify
+    return brwsrify
         .bundle()
         .on('error', fancy_log)
         .pipe(source('bundle.js'))
@@ -48,5 +51,3 @@ function bundle() {
 
 exports.clean = clean;
 exports.default = gulp.series(html, bundle, watch);
-watchedBrowserify.on('update', bundle);
-watchedBrowserify.on('log', fancy_log);
