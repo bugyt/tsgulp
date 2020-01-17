@@ -17,8 +17,11 @@
   },
   "homepage": "https://github.com/bugyt/tsgulp#readme",
   "devDependencies": {
+    "browserify": "^16.5.0",
     "gulp": "^4.0.0",
     "gulp-typescript": "^6.0.0-alpha.1",
-    "typescript": "^3.7.5"
+    "tsify": "^4.0.1",
+    "typescript": "^3.7.5",
+    "vinyl-source-stream": "^2.0.0"
   }
 }
