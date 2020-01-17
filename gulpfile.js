@@ -1,25 +1,42 @@
-var gulp = require('gulp');
-var browserify = require('browserify');
-var source = require('vinyl-source-stream');
-var watchify = require('watchify');
-var tsify = require('tsify');
-var fancy_log = require('fancy-log');
-var paths = {
-    pages: ['src/*.html']
+let gulp = require('gulp');
+let browserify = require('browserify');
+let source = require('vinyl-source-stream');
+let watchify = require('watchify');
+let tsify = require('tsify');
+let fancy_log = require('fancy-log');
+let del = require('del');
+
+const paths = {
+    html: {
+        src: 'src/*.html',
+        dest: 'dist/'
+    },
+    js: {
+        src: ['src/main.ts'],
+        dest: 'dist/'
+    }
 };
 
-var watchedBrowserify = watchify(browserify({
+let watchedBrowserify = watchify(browserify({
     basedir: '.',
     debug: true,
-    entries: ['src/main.ts'],
+    entries: paths.js.src,
     cache: {},
     packageCache: {}
 }).plugin(tsify));
 
-gulp.task('copy-html', function () {
-    return gulp.src(paths.pages)
-        .pipe(gulp.dest('dist'));
-});
+function clean() {
+    return del([paths.html.dest + '*']);
+}
+
+function html() {
+    return gulp.src(paths.html.src, { since: gulp.lastRun(html) })
+        .pipe(gulp.dest(paths.html.dest));
+}
+
+function watch() {
+    gulp.watch(paths.html.src, html);
+}
 
 function bundle() {
     return watchedBrowserify
@@ -29,6 +46,7 @@ function bundle() {
         .pipe(gulp.dest('dist'));
 }
 
-gulp.task('default', gulp.series(gulp.parallel('copy-html'), bundle));
+exports.clean = clean;
+exports.default = gulp.series(html, bundle, watch);
 watchedBrowserify.on('update', bundle);
 watchedBrowserify.on('log', fancy_log);
